@@ -21,7 +21,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import Footer from "components/Footer/Footer.js";
 
 
-export default function LandingPage() {
+export default function AppPage() {
 
   //////////////-------state variables-------------///////////////
   const [RarityModal, RaritySettingModal] = React.useState(false);//opening Modal
@@ -38,6 +38,7 @@ export default function LandingPage() {
   const [selected_layer, setSelectedLayer] = React.useState(0);//select layer
   const [selected_image, setSelectedImage] = React.useState(-1);//select image
   const [show_randomize, setShowRandomize] = React.useState("hide");//show randomize
+  const [show_panel_wrapper, setShowPanelWrapper] = React.useState(-1);
   const [disable_btn, setDisableBtn] = React.useState(true);//disable button
   //////////////---------------------------------///////////////
 
@@ -63,6 +64,7 @@ export default function LandingPage() {
     setSelectedImage(-1);
     setShowRandomize("hide");
     setDisableBtn(true);
+    setShowPanelWrapper(-1);
 
     document.getElementById("new_laer_input").value = "";
     document.getElementById("image_dimension_x").value = 0;
@@ -103,7 +105,12 @@ export default function LandingPage() {
   }
 
   const clickImage = (image_id) => {
-    setSelectedImage(parseInt(image_id.substr(6)));
+    if(show_randomize == "hide")
+      setSelectedImage(parseInt(image_id.substr(6)));
+    else
+    {
+      setShowPanelWrapper(parseInt(image_id.substr(6)));
+    }
   }
 
   const delImage = (image_id) => {
@@ -308,6 +315,34 @@ export default function LandingPage() {
       ReactDom.render(images_for_layer_element,document.getElementById("image-rarity-assets"));
     }
   }
+
+  const displayWrapperPanel = () => {
+    if(show_panel_wrapper == -1 || show_randomize == "hide")
+    {
+      var element = (<div></div>)
+      ReactDom.render(element, document.getElementById("image_wrapper_panel"));
+      return;
+    }
+    var element = (
+      <div className="panel_wrapper">
+        <div className="panel_wrapper_body">
+          <i className="tim-icons icon-simple-remove panel_wrapper_close" onClick={removeShowPanelWrapper}/>
+          <div className="image-panel-wrapper">
+            <img src={layers[selected_layer].image_info[show_panel_wrapper].image_url}/>
+          </div>
+          <h4>Attributes:</h4>
+          <table className="panel_wrapper_table">
+            
+          </table>
+        </div>
+      </div>
+    )
+    ReactDom.render(element, document.getElementById("image_wrapper_panel"));
+  }
+
+  const removeShowPanelWrapper = () => {
+    setShowPanelWrapper(-1);
+  }
   
   const setImageRarity = (value, rarity_id) =>{
     var tmp_layers = [...layers];
@@ -376,7 +411,7 @@ export default function LandingPage() {
 
    //////////////-------react hook-------------///////////////
    React.useEffect(() => {
-     
+     console.log(show_panel_wrapper,show_randomize);
      if(layers.length > 1)
      {
       var sum = 0;
@@ -389,12 +424,13 @@ export default function LandingPage() {
     diplayImagesForLayer();
     displayImageRarity();
     displayButton();
-    document.body.classList.toggle("landing-page");
+    displayWrapperPanel();
+    document.body.classList.toggle("app-page");
     // Specify how to clean up after this effect:
     return function cleanup() {
-      document.body.classList.toggle("landing-page");
+      document.body.classList.toggle("app-page");
     };
-  },[layers, selected_layer, selected_image,disable_btn]);
+  },[layers, selected_layer, selected_image,disable_btn,show_panel_wrapper,show_randomize]);
   //////////////---------------------------------///////////////
 
 
@@ -460,6 +496,10 @@ export default function LandingPage() {
                 </div>
               </div>
               
+              <div id = "image_wrapper_panel">
+
+              </div>
+
               <div className="column right-side">
                 <div className="install-metamask">
                   <Button className="btn_top btn-simple" size="sm">

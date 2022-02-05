@@ -6,16 +6,21 @@ import "assets/css/nucleo-icons.css";
 import "assets/scss/index.scss?v=1.2.0";
 import "assets/demo/demo.css";
 
-import Index from "views/Index.js";
+import App from "views/App.js";
+import Payment from "views/Payment.js";
 
 ReactDOM.render(
   <BrowserRouter>
     <Switch>
       <Route
-        path="/App"
-        render={(props) => <Index {...props} />}
+        path="/app"
+        render={(props) => <App {...props} />}
       />
-      <Redirect from="/" to="/App" />
+      <Route
+        path="/payment"
+        render={(props) => <Payment {...props}/>}
+      />
+      <Redirect from="/" to="/app" />
     </Switch>
   </BrowserRouter>,
   document.getElementById("root")
