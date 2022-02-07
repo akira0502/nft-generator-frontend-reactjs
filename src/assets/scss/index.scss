@@ -46,7 +46,14 @@ $asset-base-path: '../../../../assets' !default;
 @import "~bootstrap/scss/utilities";
 @import "~bootstrap/scss/print";
 
+
+// My Page Css
+@import "core/custom/app.scss";
+@import "core/custom/payment.scss";
+
+
 // Custom components
+
 
 @import "core/custom/alerts.scss";
 @import "core/custom/buttons.scss";

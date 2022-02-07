@@ -2,7 +2,6 @@ import React from "react";
 import ReactDom from "react-dom";
 import {
   Button,
-  CustomInput,
   Input,
   UncontrolledDropdown,
   DropdownToggle, 
@@ -22,24 +21,72 @@ import Footer from "components/Footer/Footer.js";
 
 
 export default function AppPage() {
-
+  
   //////////////-------state variables-------------///////////////
-  const [RarityModal, RaritySettingModal] = React.useState(false);//opening Modal
-  const [new_layer_name, setNewLayerName] = React.useState(null);//new Layer name
-  const [layers, setLayers] = React.useState([{
-    layer_name:"Background",
-    image_cnt: 0,
-    image_collection_cnt : 0,
-    image_dimension : [0,0],
-    image_file: [],
-    image_info: [],
-    per: 100,
-  }]);//new Layer name
-  const [selected_layer, setSelectedLayer] = React.useState(0);//select layer
-  const [selected_image, setSelectedImage] = React.useState(-1);//select image
-  const [show_randomize, setShowRandomize] = React.useState("hide");//show randomize
-  const [show_panel_wrapper, setShowPanelWrapper] = React.useState(-1);
-  const [disable_btn, setDisableBtn] = React.useState(true);//disable button
+  const getLocalStorage = (key) => {
+    let app_state = JSON.parse(localStorage.getItem('app-state'));
+    switch(key)
+    {
+      case "rarity_modal":
+        if(app_state)
+          return app_state["rarity_modal"];
+        else
+          return false;
+      case "new_layer_name":
+        if(app_state)
+          return app_state["new_layer_name"];
+        else
+          return null;
+      case "layers":
+        if(app_state)
+          return app_state["layers"];
+        else
+          return [{
+            layer_name:"Background",
+            image_cnt: 0,
+            image_collection_cnt : 0,
+            image_dimension : [0,0],
+            image_file: [],
+            image_info: [],
+            per: 100,
+          }];
+      case "selected_layer":
+        if(app_state)
+          return app_state["selected_layer"];
+        else
+          return 0;
+      case "selected_image":
+        if(app_state)
+          return app_state["selected_image"];
+        else
+          return -1;
+      case "show_randomize":
+        if(app_state)
+          return app_state["show_randomize"];
+        else
+          return "hide";
+      case "show_panel_wrapper":
+        if(app_state)
+          return app_state["show_panel_wrapper"];
+        else
+          return -1;
+      case "disable_btn":
+        if(app_state)
+          return app_state["disable_btn"];
+        else
+          return true;
+      default:
+        return null;
+    }
+  }
+  const [rarity_modal, RaritySettingModal] = React.useState(getLocalStorage("rarity_modal"));//opening Modal
+  const [new_layer_name, setNewLayerName] = React.useState(getLocalStorage("new_layer_name"));//new Layer name
+  const [layers, setLayers] = React.useState(getLocalStorage("layers"));//new Layer name
+  const [selected_layer, setSelectedLayer] = React.useState(getLocalStorage("selected_layer"));//select layer
+  const [selected_image, setSelectedImage] = React.useState(getLocalStorage("selected_image"));//select image
+  const [show_randomize, setShowRandomize] = React.useState(getLocalStorage("show_randomize"));//show randomize
+  const [show_panel_wrapper, setShowPanelWrapper] = React.useState(getLocalStorage("show_panel_wrapper"));
+  const [disable_btn, setDisableBtn] = React.useState(getLocalStorage("disable_btn"));//disable button
   //////////////---------------------------------///////////////
 
 
@@ -49,6 +96,7 @@ export default function AppPage() {
 
 
   //////////////-------functions-------------///////////////
+
   const refereshProjectSetting = () => {
     setNewLayerName("");
     setLayers([{
@@ -72,18 +120,18 @@ export default function AppPage() {
   }
 
   const delSelectedLayer = () => {
-    if(layers.length == 1 )
+    if(layers.length === 1 )
       return;
-    setLayers(layers.filter((item, index) => index != selected_layer));
+    setLayers(layers.filter((item, index) => index !== selected_layer));
     setSelectedLayer(0);
   }
 
   const addNewLayer = () => {
-    if(new_layer_name == null)
+    if(new_layer_name === null)
       return;
     var tmp_layers = [...layers];
     for(var i = 0; i < tmp_layers.length; i ++)
-      if(new_layer_name == tmp_layers[i].layer_name)
+      if(new_layer_name === tmp_layers[i].layer_name)
         return;
     tmp_layers.push({
       layer_name : new_layer_name,
@@ -105,8 +153,11 @@ export default function AppPage() {
   }
 
   const clickImage = (image_id) => {
-    if(show_randomize == "hide")
-      setSelectedImage(parseInt(image_id.substr(6)));
+    if(show_randomize === "hide")
+      {
+        setSelectedImage(parseInt(image_id.substr(6)));
+        setShowPanelWrapper(-1);
+      }
     else
     {
       setShowPanelWrapper(parseInt(image_id.substr(6)));
@@ -114,12 +165,12 @@ export default function AppPage() {
   }
 
   const delImage = (image_id) => {
+    setSelectedImage(-1);
     var tmp_layers = [...layers];
     tmp_layers[selected_layer].image_cnt --;
     tmp_layers[selected_layer].image_collection_cnt -= tmp_layers[selected_layer].image_info[image_id].image_collection;
     tmp_layers[selected_layer].image_file.splice(image_id, 1);
     tmp_layers[selected_layer].image_info.splice(image_id, 1);
-    setSelectedImage(0);
     setLayers(tmp_layers);
   }
 
@@ -155,7 +206,7 @@ export default function AppPage() {
                   return (
                     <Draggable key={layer_name} draggableId={layer_name} index={index}>
                       {(provided) => (
-                        <li ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className={"layer card menu " + (selected_layer == index  ? "active" : "")} key={index} id={"layer_" + index} value={index} onClick={(e) => clickLayer(e.currentTarget.id)}>
+                        <li ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className={"layer card menu " + (selected_layer === index  ? "active" : "")} key={index} id={"layer_" + index} value={index} onClick={(e) => clickLayer(e.currentTarget.id)}>
                           <span className="item items">
                             <span className="item">{layer_name}</span>
                             <span className="item">
@@ -178,8 +229,8 @@ export default function AppPage() {
     ReactDom.render(layers_element,document.getElementById("layers"));
   }
 
-  const diplayImagesForLayer = () => {
-    if(layers[selected_layer].image_cnt == 0)
+  const displayImagesForLayer = () => {
+    if(layers[selected_layer].image_cnt === 0)
     {
         var tmp = [];
         ReactDom.render(tmp,document.getElementById("image-board"));
@@ -189,35 +240,25 @@ export default function AppPage() {
     var images_for_layer_element = [];
     for(i = 0; i < layers[selected_layer].image_cnt; i ++)
     {
-      if(layers[selected_layer].image_info[i].image_valid == 1)
-        images_for_layer_element.push((
-          <div>
-            <div className={"image-panel " + (selected_image == i ? "active" : "")} id={"image_" + i} key={i} onClick={(e) => clickImage(e.currentTarget.id)}>
-              <img loading="lazy" decoding="async" src={layers[selected_layer].image_info[i].image_url} className="image-card" />
-              <span className="per-tag">{(layers[selected_layer].image_info[i].image_collection * 100 / layers[selected_layer].image_collection_cnt).toFixed(1) + "%"}</span>
-              <span className="name-tag">{layers[selected_layer].image_info[i].image_name}</span>
-              <Button className="delete project-btn image-card-btn" id={i} onClick={(e) => delImage(e.currentTarget.id)}>
-                <i className="tim-icons icon-simple-remove" />
-              </Button>
-            </div>
-          </div>
-        ));
-      else
-        images_for_layer_element.push((
-        <div>
-          <div className={"image-panel invalid" + (selected_image == i ? "active" : "")} id={"image_" + i} key={i} onClick={(e) => clickImage(e.currentTarget.id)} id={"tooltip-invalid-" + i}>
-            <img loading="lazy" decoding="async" src={layers[selected_layer].image_info[i].image_url} className="image-card" />
+      images_for_layer_element.push((
+        <div key={i}>
+          <div className={"image-panel " + (layers[selected_layer].image_info[i].image_valid !== 1? "invalid ":"") + (selected_image === i ? "active" : "")} id={"image_" + i} onClick={(e) => clickImage(e.currentTarget.id)}>
+            <img alt="" loading="lazy" decoding="async" src={layers[selected_layer].image_info[i].image_url} className="image-card" />
             <span className="per-tag">{(layers[selected_layer].image_info[i].image_collection * 100 / layers[selected_layer].image_collection_cnt).toFixed(1) + "%"}</span>
             <span className="name-tag">{layers[selected_layer].image_info[i].image_name}</span>
+            {(selected_image === i ?
             <Button className="delete project-btn image-card-btn" id={i} onClick={(e) => delImage(e.currentTarget.id)}>
-                <i className="tim-icons icon-simple-remove" />
-              </Button>
+              <i className="tim-icons icon-simple-remove" />
+            </Button>:""
+            )}
           </div>
-          <UncontrolledTooltip placement="top" target={"tooltip-invalid-" + i} delay={0}>
+          {(layers[selected_layer].image_info[i].image_valid !== 1?
+          <UncontrolledTooltip placement="top" target={"image_" + i} delay={0}>
             This file does not respect the project dimensions. Expected {layers[selected_layer].image_dimension[0]} * {layers[selected_layer].image_dimension[1]} but this is {layers[selected_layer].image_info[i].dimension_x} * {layers[selected_layer].image_info[i].dimension_y}.Please remove it.
-          </UncontrolledTooltip>
-        </div> 
-        ));
+          </UncontrolledTooltip>:""
+          )}
+        </div>
+      ));
     }
    ReactDom.render(images_for_layer_element,document.getElementById("image-board"));
   }
@@ -259,7 +300,7 @@ export default function AppPage() {
           </div>
           <div className="button-section">
             <UncontrolledButtonDropdown>
-                <Button id="caret" className="btn-neutral generate_btn" color="info" >Generate Collection</Button>
+                <Button id="caret" className="btn-neutral generate_btn" color="info" href="/payment">Generate Collection</Button>
                 <DropdownToggle caret className="dropdown-toggle-split btn-neutral" color="info" data-toggle="dropdown"/>
                 <DropdownMenu>
                     <DropdownItem header>Collection Size</DropdownItem>
@@ -280,9 +321,9 @@ export default function AppPage() {
 
   const displayImageRarity = () => {
     var is_modal = document.getElementById("image-rarity-assets");
-    if(is_modal == null)
+    if(is_modal === null)
       return;
-    if(layers[selected_layer].image_cnt == 0)
+    if(layers[selected_layer].image_cnt === 0)
     {
         var tmp = [];
         ReactDom.render(tmp,document.getElementById("image-rarity-assets"));
@@ -297,7 +338,7 @@ export default function AppPage() {
         images_for_layer_element.push(
           <div className="assets-panel" key={i}>
             <figure className="is-1">
-              <img src={layers[selected_layer].image_info[i].image_url} className="assets_img" />
+              <img alt="" src={layers[selected_layer].image_info[i].image_url} className="assets_img" />
             </figure>
             <div className="is-2">
             {(layers[selected_layer].image_info[i].image_collection * 100 / layers[selected_layer].image_collection_cnt).toFixed(2) + "%"}
@@ -317,10 +358,10 @@ export default function AppPage() {
   }
 
   const displayWrapperPanel = () => {
-    if(show_panel_wrapper == -1 || show_randomize == "hide")
+    if(show_panel_wrapper === -1 || show_randomize === "hide")
     {
-      var element = (<div></div>)
-      ReactDom.render(element, document.getElementById("image_wrapper_panel"));
+      var non_element = (<div></div>)
+      ReactDom.render(non_element, document.getElementById("image_wrapper_panel"));
       return;
     }
     var element = (
@@ -328,7 +369,7 @@ export default function AppPage() {
         <div className="panel_wrapper_body">
           <i className="tim-icons icon-simple-remove panel_wrapper_close" onClick={removeShowPanelWrapper}/>
           <div className="image-panel-wrapper">
-            <img src={layers[selected_layer].image_info[show_panel_wrapper].image_url}/>
+            <img alt="" src={layers[selected_layer].image_info[show_panel_wrapper].image_url}/>
           </div>
           <h4>Attributes:</h4>
           <table className="panel_wrapper_table">
@@ -355,7 +396,9 @@ export default function AppPage() {
   }
 
   const changeShowRandomize = () => {
-    var t = show_randomize == "hide" ? "show" : "hide";
+    var t = show_randomize === "hide" ? "show" : "hide";
+    setSelectedImage(-1);
+    setShowPanelWrapper(-1);
     setShowRandomize(t);
   }
 
@@ -364,7 +407,7 @@ export default function AppPage() {
   }
 
   const onChangeDropImage = (event) => {
-    if(event.target.files.length == 0)
+    if(event.target.files.length === 0)
       return;
     for(var i = 0; i < event.target.files.length; i ++)
     {
@@ -386,17 +429,16 @@ export default function AppPage() {
       const img = new Image();
       reader.onload = (event) => {
         img.src = reader.result;
-        
       }
       reader.readAsDataURL(event.target.files[0]);
       img.onload = () => {
           var tmp_layers = [...layers];
-          if(tmp_layers[selected_layer].image_cnt == 1)
+          if(tmp_layers[selected_layer].image_cnt === 1)
           {
             tmp_layers[selected_layer].image_dimension[0] = img.width;
             tmp_layers[selected_layer].image_dimension[1] = img.height;
           }
-          if(!(tmp_layers[selected_layer].image_dimension[0] == img.width && tmp_layers[selected_layer].image_dimension[1] == img.height))
+          if(!(tmp_layers[selected_layer].image_dimension[0] === img.width && tmp_layers[selected_layer].image_dimension[1] === img.height))
             tmp_layers[selected_layer].image_info[tmp_layers[selected_layer].image_cnt - 1].image_valid = 0;
           else
             tmp_layers[selected_layer].image_info[tmp_layers[selected_layer].image_cnt - 1].image_valid = 1;
@@ -411,7 +453,20 @@ export default function AppPage() {
 
    //////////////-------react hook-------------///////////////
    React.useEffect(() => {
-     console.log(show_panel_wrapper,show_randomize);
+
+    const app_state = {
+      rarity_modal : rarity_modal,
+      new_layer_name : new_layer_name,
+      layers : layers,
+      selected_layer : selected_layer,
+      selected_image : selected_image,
+      show_randomize : show_randomize,
+      show_panel_wrapper : show_panel_wrapper,
+      disable_btn : disable_btn,  
+    }
+    localStorage.setItem('app-state', JSON.stringify(app_state))
+
+
      if(layers.length > 1)
      {
       var sum = 0;
@@ -421,7 +476,7 @@ export default function AppPage() {
         setDisableBtn(false);
      }
     displayLayers();
-    diplayImagesForLayer();
+    displayImagesForLayer();
     displayImageRarity();
     displayButton();
     displayWrapperPanel();
@@ -451,7 +506,7 @@ export default function AppPage() {
                     <Button className="new_layer delete layer_add"  onClick={addNewLayer}>+</Button>
                   </div>
                 </div>
-                <div clasName="sep"></div>
+                <div className="sep"></div>
                 <div id="action_button">
 
                 </div>
@@ -580,7 +635,7 @@ export default function AppPage() {
                     
                     <Modal
                       modalClassName="modal-black"
-                      isOpen={RarityModal}
+                      isOpen={rarity_modal}
                       toggle={() => RaritySettingModal(false)}
                       id = "settingModal"
                       // onOpened={createSlider}
